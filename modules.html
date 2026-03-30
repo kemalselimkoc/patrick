@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Modüller — Gözlemci Zihni</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-page">
+  <div class="noise"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="eye-icon small">
+        <svg viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 20 C20 4, 60 4, 76 20 C60 36, 20 36, 4 20Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <span>Gözlemci</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" data-tr="Ana Sayfa" data-en="Dashboard">Ana Sayfa</a></li>
+      <li><a href="modules.html" class="active" data-tr="Modüller" data-en="Modules">Modüller</a></li>
+      <li><a href="weekly.html" data-tr="Haftalık Plan" data-en="Weekly Plan">Haftalık Plan</a></li>
+      <li><a href="quiz.html" data-tr="Quiz" data-en="Quiz">Quiz</a></li>
+      <li><a href="notes.html" data-tr="Notlarım" data-en="My Notes">Notlarım</a></li>
+    </ul>
+    <div class="sidebar-bottom">
+      <button class="lang-toggle" id="langToggle">EN</button>
+      <button class="logout-btn" id="logoutBtn" title="Çıkış">⏻</button>
+    </div>
+  </nav>
+  <button class="hamburger" id="hamburger">☰</button>
+
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <h2 class="page-title" data-tr="Eğitim Modülleri" data-en="Training Modules">Eğitim Modülleri</h2>
+        <p class="page-sub" data-tr="İstediğin modülden başla veya sırayla ilerle." data-en="Start from any module or follow the order.">İstediğin modülden başla veya sırayla ilerle.</p>
+      </div>
+    </header>
+
+    <div class="modules-grid" id="modulesGrid"></div>
+  </main>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/content.js"></script>
+  <script>
+    requireAuth();
+    initLang();
+    renderModules();
+
+    function renderModules() {
+      const grid = document.getElementById("modulesGrid");
+      const lang = getLang();
+      const progress = getProgress();
+
+      MODULES.forEach((mod, i) => {
+        const card = document.createElement("div");
+        card.className = "module-card";
+        const done = isLessonDone(mod.id);
+        if (done) card.classList.add("completed");
+
+        card.innerHTML = `
+          <div class="mod-header">
+            <span class="mod-icon">${mod.icon}</span>
+            <span class="mod-tag">${mod.tag[lang]}</span>
+          </div>
+          <h3 class="mod-title">${mod.title[lang]}</h3>
+          <p class="mod-desc">${mod.desc[lang]}</p>
+          <div class="mod-footer">
+            <span class="mod-duration">${mod.duration}</span>
+            <button class="mod-btn" data-id="${mod.id}">${done ? (lang==='tr'?'✓ Tekrar Gör':'✓ Review') : (lang==='tr'?'Başla →':'Start →')}</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      document.querySelectorAll(".mod-btn").forEach(btn => {
+        btn.addEventListener("click", () => openLesson(btn.dataset.id));
+      });
+    }
+
+    function openLesson(id) {
+      const mod = MODULES.find(m => m.id === id);
+      if (!mod) return;
+      const lang = getLang();
+      const overlay = document.getElementById("modalOverlay");
+      const content = document.getElementById("modalContent");
+
+      content.innerHTML = `
+        <div class="lesson-header">
+          <span class="mod-icon big">${mod.icon}</span>
+          <h2>${mod.title[lang]}</h2>
+        </div>
+        <div class="lesson-body">${mod.content[lang]}</div>
+        <div class="lesson-actions">
+          <button class="btn-primary" id="markDoneBtn">
+            ${lang==='tr' ? '✓ Bu Dersi Tamamladım' : '✓ Mark as Complete'}
+          </button>
+        </div>
+      `;
+      overlay.classList.add("active");
+
+      document.getElementById("markDoneBtn").addEventListener("click", () => {
+        markLessonDone(id);
+        updateCategoryProgress(mod.category);
+        overlay.classList.remove("active");
+        document.querySelectorAll(".module-card").forEach(c => c.remove());
+        renderModules();
+      });
+    }
+
+    document.getElementById("modalClose").addEventListener("click", () => {
+      document.getElementById("modalOverlay").classList.remove("active");
+    });
+    document.getElementById("modalOverlay").addEventListener("click", e => {
+      if (e.target === document.getElementById("modalOverlay"))
+        document.getElementById("modalOverlay").classList.remove("active");
+    });
+  </script>
+</body>
+</html>

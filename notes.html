@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notlarım — Gözlemci Zihni</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-page">
+  <div class="noise"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="eye-icon small">
+        <svg viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 20 C20 4, 60 4, 76 20 C60 36, 20 36, 4 20Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <span>Gözlemci</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" data-tr="Ana Sayfa" data-en="Dashboard">Ana Sayfa</a></li>
+      <li><a href="modules.html" data-tr="Modüller" data-en="Modules">Modüller</a></li>
+      <li><a href="weekly.html" data-tr="Haftalık Plan" data-en="Weekly Plan">Haftalık Plan</a></li>
+      <li><a href="quiz.html" data-tr="Quiz" data-en="Quiz">Quiz</a></li>
+      <li><a href="notes.html" class="active" data-tr="Notlarım" data-en="My Notes">Notlarım</a></li>
+    </ul>
+    <div class="sidebar-bottom">
+      <button class="lang-toggle" id="langToggle">EN</button>
+      <button class="logout-btn" id="logoutBtn" title="Çıkış">⏻</button>
+    </div>
+  </nav>
+  <button class="hamburger" id="hamburger">☰</button>
+
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <h2 class="page-title" data-tr="Notlarım" data-en="My Notes">Notlarım</h2>
+        <p class="page-sub" data-tr="Gözlemlerini ve öğrendiklerini kaydet." data-en="Record your observations and learnings.">Gözlemlerini ve öğrendiklerini kaydet.</p>
+      </div>
+      <button class="btn-primary" id="addNoteBtn" data-tr="+ Yeni Not" data-en="+ New Note">+ Yeni Not</button>
+    </header>
+
+    <div class="notes-grid" id="notesGrid"></div>
+    <p class="empty-msg hidden" id="emptyMsg" data-tr="Henüz not yok. İlk notunu ekle!" data-en="No notes yet. Add your first note!">Henüz not yok. İlk notunu ekle!</p>
+  </main>
+
+  <div class="modal-overlay" id="noteModal">
+    <div class="modal note-modal">
+      <button class="modal-close" id="noteModalClose">✕</button>
+      <input type="text" class="note-title-input" id="noteTitleInput" placeholder="Başlık..." />
+      <textarea class="note-body-input" id="noteBodyInput" placeholder="Gözlemlerini buraya yaz..."></textarea>
+      <div class="note-modal-footer">
+        <button class="btn-secondary" id="deleteNoteBtn" style="display:none" data-tr="Sil" data-en="Delete">Sil</button>
+        <button class="btn-primary" id="saveNoteBtn" data-tr="Kaydet" data-en="Save">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    requireAuth();
+    initLang();
+
+    let editingId = null;
+    renderNotes();
+
+    document.getElementById("addNoteBtn").addEventListener("click", () => openNoteModal(null));
+    document.getElementById("noteModalClose").addEventListener("click", closeNoteModal);
+    document.getElementById("saveNoteBtn").addEventListener("click", saveNote);
+    document.getElementById("deleteNoteBtn").addEventListener("click", deleteNote);
+
+    function getNotes() { return JSON.parse(localStorage.getItem("mt_notes") || "[]"); }
+    function saveNotes(notes) { localStorage.setItem("mt_notes", JSON.stringify(notes)); }
+
+    function renderNotes() {
+      const lang = getLang();
+      const notes = getNotes();
+      const grid = document.getElementById("notesGrid");
+      const empty = document.getElementById("emptyMsg");
+      grid.innerHTML = "";
+      if (notes.length === 0) { empty.classList.remove("hidden"); return; }
+      empty.classList.add("hidden");
+      notes.slice().reverse().forEach(note => {
+        const card = document.createElement("div");
+        card.className = "note-card";
+        card.innerHTML = `
+          <h4>${note.title || (lang==='tr'?'Başlıksız':'Untitled')}</h4>
+          <p>${note.body}</p>
+          <small>${new Date(note.date).toLocaleDateString(lang==='tr'?'tr-TR':'en-US')}</small>
+        `;
+        card.addEventListener("click", () => openNoteModal(note.id));
+        grid.appendChild(card);
+      });
+    }
+
+    function openNoteModal(id) {
+      editingId = id;
+      const lang = getLang();
+      const modal = document.getElementById("noteModal");
+      const deleteBtn = document.getElementById("deleteNoteBtn");
+      if (id) {
+        const note = getNotes().find(n => n.id === id);
+        document.getElementById("noteTitleInput").value = note.title || "";
+        document.getElementById("noteBodyInput").value = note.body || "";
+        deleteBtn.style.display = "block";
+      } else {
+        document.getElementById("noteTitleInput").value = "";
+        document.getElementById("noteBodyInput").value = "";
+        deleteBtn.style.display = "none";
+      }
+      modal.classList.add("active");
+      document.getElementById("noteBodyInput").focus();
+    }
+
+    function closeNoteModal() { document.getElementById("noteModal").classList.remove("active"); editingId = null; }
+
+    function saveNote() {
+      const title = document.getElementById("noteTitleInput").value.trim();
+      const body = document.getElementById("noteBodyInput").value.trim();
+      if (!body) return;
+      let notes = getNotes();
+      if (editingId) {
+        notes = notes.map(n => n.id === editingId ? { ...n, title, body, date: Date.now() } : n);
+      } else {
+        notes.push({ id: Date.now().toString(), title, body, date: Date.now() });
+      }
+      saveNotes(notes);
+      closeNoteModal();
+      renderNotes();
+    }
+
+    function deleteNote() {
+      if (!editingId) return;
+      let notes = getNotes().filter(n => n.id !== editingId);
+      saveNotes(notes);
+      closeNoteModal();
+      renderNotes();
+    }
+  </script>
+</body>
+</html>

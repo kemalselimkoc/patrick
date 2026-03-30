@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Gözlemci Zihni</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-page">
+  <div class="noise"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="eye-icon small">
+        <svg viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 20 C20 4, 60 4, 76 20 C60 36, 20 36, 4 20Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <span>Gözlemci</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" class="active" data-tr="Ana Sayfa" data-en="Dashboard">Ana Sayfa</a></li>
+      <li><a href="modules.html" data-tr="Modüller" data-en="Modules">Modüller</a></li>
+      <li><a href="weekly.html" data-tr="Haftalık Plan" data-en="Weekly Plan">Haftalık Plan</a></li>
+      <li><a href="quiz.html" data-tr="Quiz" data-en="Quiz">Quiz</a></li>
+      <li><a href="notes.html" data-tr="Notlarım" data-en="My Notes">Notlarım</a></li>
+    </ul>
+    <div class="sidebar-bottom">
+      <button class="lang-toggle" id="langToggle">EN</button>
+      <button class="logout-btn" id="logoutBtn" title="Çıkış">⏻</button>
+    </div>
+  </nav>
+
+  <button class="hamburger" id="hamburger">☰</button>
+
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <h2 class="page-title" data-tr="Hoş geldin, Dedektif." data-en="Welcome back, Detective.">Hoş geldin, Dedektif.</h2>
+        <p class="page-sub" id="dateDisplay"></p>
+      </div>
+      <div class="streak-badge" id="streakBadge">
+        <span id="streakCount">0</span>
+        <small data-tr="gün seri" data-en="day streak">gün seri</small>
+      </div>
+    </header>
+
+    <!-- Günlük Hatırlatıcı -->
+    <div class="reminder-card" id="reminderCard">
+      <div class="reminder-icon">👁</div>
+      <div>
+        <strong data-tr="Bugünkü egzersizini yaptın mı?" data-en="Did you do today's exercise?">Bugünkü egzersizini yaptın mı?</strong>
+        <p data-tr="Gözlem kasını her gün çalıştırman gerekiyor." data-en="You need to train your observation muscle every day.">Gözlem kasını her gün çalıştırman gerekiyor.</p>
+      </div>
+      <button id="reminderDone" data-tr="Evet, yaptım!" data-en="Yes, done!">Evet, yaptım!</button>
+    </div>
+
+    <!-- İlerleme -->
+    <section class="progress-section">
+      <h3 data-tr="Genel İlerleme" data-en="Overall Progress">Genel İlerleme</h3>
+      <div class="progress-grid">
+        <div class="progress-card">
+          <div class="prog-label" data-tr="Gözlem Eğitimi" data-en="Observation Training">Gözlem Eğitimi</div>
+          <div class="prog-bar-wrap"><div class="prog-bar" id="obsBar"></div></div>
+          <div class="prog-pct" id="obsPct">0%</div>
+        </div>
+        <div class="progress-card">
+          <div class="prog-label" data-tr="Mikro İfadeler" data-en="Micro Expressions">Mikro İfadeler</div>
+          <div class="prog-bar-wrap"><div class="prog-bar" id="microBar"></div></div>
+          <div class="prog-pct" id="microPct">0%</div>
+        </div>
+        <div class="progress-card">
+          <div class="prog-label" data-tr="Hafıza Sarayı" data-en="Memory Palace">Hafıza Sarayı</div>
+          <div class="prog-bar-wrap"><div class="prog-bar" id="memBar"></div></div>
+          <div class="prog-pct" id="memPct">0%</div>
+        </div>
+        <div class="progress-card">
+          <div class="prog-label" data-tr="Eleştirel Düşünce" data-en="Critical Thinking">Eleştirel Düşünce</div>
+          <div class="prog-bar-wrap"><div class="prog-bar" id="critBar"></div></div>
+          <div class="prog-pct" id="critPct">0%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hızlı Erişim -->
+    <section class="quick-section">
+      <h3 data-tr="Hızlı Erişim" data-en="Quick Access">Hızlı Erişim</h3>
+      <div class="quick-grid">
+        <a href="modules.html" class="quick-card">
+          <span class="qc-icon">📚</span>
+          <span data-tr="Tüm Modüller" data-en="All Modules">Tüm Modüller</span>
+        </a>
+        <a href="weekly.html" class="quick-card">
+          <span class="qc-icon">📅</span>
+          <span data-tr="Bu Haftanın Planı" data-en="This Week's Plan">Bu Haftanın Planı</span>
+        </a>
+        <a href="quiz.html" class="quick-card">
+          <span class="qc-icon">🎯</span>
+          <span data-tr="Kendini Test Et" data-en="Test Yourself">Kendini Test Et</span>
+        </a>
+        <a href="notes.html" class="quick-card">
+          <span class="qc-icon">✍️</span>
+          <span data-tr="Notlarım" data-en="My Notes">Notlarım</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script>
+    requireAuth();
+    initLang();
+    initStreak();
+    renderDashboard();
+
+    function renderDashboard() {
+      const now = new Date();
+      const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById("dateDisplay").textContent = now.toLocaleDateString('tr-TR', opts);
+
+      const progress = getProgress();
+      setBar("obsBar","obsPct", progress.observation||0);
+      setBar("microBar","microPct", progress.micro||0);
+      setBar("memBar","memPct", progress.memory||0);
+      setBar("critBar","critPct", progress.critical||0);
+
+      // Reminder
+      const lastDone = localStorage.getItem("mt_daily_done");
+      const today = new Date().toDateString();
+      if (lastDone === today) {
+        document.getElementById("reminderCard").classList.add("done");
+      }
+      document.getElementById("reminderDone").addEventListener("click", () => {
+        localStorage.setItem("mt_daily_done", today);
+        document.getElementById("reminderCard").classList.add("done");
+        updateStreak();
+      });
+    }
+
+    function setBar(barId, pctId, val) {
+      const bar = document.getElementById(barId);
+      const pct = document.getElementById(pctId);
+      setTimeout(() => {
+        bar.style.width = val + "%";
+        pct.textContent = val + "%";
+      }, 300);
+    }
+  </script>
+</body>
+</html>

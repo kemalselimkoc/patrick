@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mind Training — Gözlemci Zihni</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+</head>
+<body class="login-page">
+  <div class="noise"></div>
+
+  <div class="login-container">
+    <div class="login-logo">
+      <div class="eye-icon">
+        <svg viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 20 C20 4, 60 4, 76 20 C60 36, 20 36, 4 20Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <h1>Gözlemci Zihni</h1>
+      <p class="subtitle">Mind Training System</p>
+    </div>
+
+    <div class="login-card">
+      <p class="login-hint">Sisteme erişmek için şifrenizi girin</p>
+      <div class="input-wrapper">
+        <input type="password" id="passwordInput" placeholder="••••••••••••" autocomplete="off"/>
+        <button id="loginBtn">→</button>
+      </div>
+      <p class="error-msg" id="errorMsg">Yanlış şifre. Tekrar deneyin.</p>
+    </div>
+
+    <p class="login-footer">Patrick Jane · Sherlock Holmes · Yöntemi</p>
+  </div>
+
+  <script>
+    const PASS = "Senem1907-";
+    const btn = document.getElementById("loginBtn");
+    const input = document.getElementById("passwordInput");
+    const err = document.getElementById("errorMsg");
+
+    function tryLogin() {
+      if (input.value === PASS) {
+        sessionStorage.setItem("mt_auth", "1");
+        window.location.href = "dashboard.html";
+      } else {
+        err.classList.add("show");
+        input.value = "";
+        input.focus();
+        setTimeout(() => err.classList.remove("show"), 3000);
+      }
+    }
+
+    btn.addEventListener("click", tryLogin);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
+    if (sessionStorage.getItem("mt_auth") === "1") window.location.href = "dashboard.html";
+  </script>
+</body>
+</html>

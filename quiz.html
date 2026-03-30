@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz — Gözlemci Zihni</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+</head>
+<body class="app-page">
+  <div class="noise"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="eye-icon small">
+        <svg viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 20 C20 4, 60 4, 76 20 C60 36, 20 36, 4 20Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="40" cy="20" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <span>Gözlemci</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" data-tr="Ana Sayfa" data-en="Dashboard">Ana Sayfa</a></li>
+      <li><a href="modules.html" data-tr="Modüller" data-en="Modules">Modüller</a></li>
+      <li><a href="weekly.html" data-tr="Haftalık Plan" data-en="Weekly Plan">Haftalık Plan</a></li>
+      <li><a href="quiz.html" class="active" data-tr="Quiz" data-en="Quiz">Quiz</a></li>
+      <li><a href="notes.html" data-tr="Notlarım" data-en="My Notes">Notlarım</a></li>
+    </ul>
+    <div class="sidebar-bottom">
+      <button class="lang-toggle" id="langToggle">EN</button>
+      <button class="logout-btn" id="logoutBtn" title="Çıkış">⏻</button>
+    </div>
+  </nav>
+  <button class="hamburger" id="hamburger">☰</button>
+
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <h2 class="page-title" data-tr="Kendini Test Et" data-en="Test Yourself">Kendini Test Et</h2>
+        <p class="page-sub" data-tr="Öğrendiklerini pekiştir." data-en="Reinforce what you've learned.">Öğrendiklerini pekiştir.</p>
+      </div>
+    </header>
+
+    <div id="quizStart" class="quiz-start">
+      <div class="quiz-categories" id="quizCategories"></div>
+      <button class="btn-primary" id="startQuizBtn" data-tr="Quizi Başlat" data-en="Start Quiz">Quizi Başlat</button>
+    </div>
+
+    <div id="quizActive" class="quiz-active hidden">
+      <div class="quiz-progress-wrap">
+        <div class="quiz-progress-bar" id="quizProgressBar"></div>
+      </div>
+      <div class="quiz-counter" id="quizCounter"></div>
+      <div class="quiz-question-card" id="quizCard">
+        <p class="quiz-question" id="quizQuestion"></p>
+        <div class="quiz-options" id="quizOptions"></div>
+        <p class="quiz-explain hidden" id="quizExplain"></p>
+        <button class="btn-primary hidden" id="nextQBtn" data-tr="Sonraki →" data-en="Next →">Sonraki →</button>
+      </div>
+    </div>
+
+    <div id="quizResult" class="quiz-result hidden">
+      <div class="result-icon" id="resultIcon"></div>
+      <h3 id="resultTitle"></h3>
+      <p id="resultScore"></p>
+      <p id="resultMsg"></p>
+      <button class="btn-primary" id="retryBtn" data-tr="Tekrar Dene" data-en="Try Again">Tekrar Dene</button>
+    </div>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script src="js/content.js"></script>
+  <script>
+    requireAuth();
+    initLang();
+
+    let selectedCategory = "all";
+    let questions = [];
+    let current = 0;
+    let score = 0;
+
+    const cats = [
+      { id: "all", tr: "Tümü", en: "All" },
+      { id: "observation", tr: "Gözlem", en: "Observation" },
+      { id: "micro", tr: "Mikro İfadeler", en: "Micro Expressions" },
+      { id: "memory", tr: "Hafıza", en: "Memory" },
+      { id: "critical", tr: "Eleştirel Düşünce", en: "Critical Thinking" },
+    ];
+
+    function renderCategories() {
+      const lang = getLang();
+      const container = document.getElementById("quizCategories");
+      container.innerHTML = "";
+      cats.forEach(c => {
+        const btn = document.createElement("button");
+        btn.className = "cat-btn" + (selectedCategory === c.id ? " active" : "");
+        btn.textContent = c[lang];
+        btn.addEventListener("click", () => { selectedCategory = c.id; renderCategories(); });
+        container.appendChild(btn);
+      });
+    }
+    renderCategories();
+
+    document.getElementById("startQuizBtn").addEventListener("click", startQuiz);
+    document.getElementById("retryBtn").addEventListener("click", () => {
+      document.getElementById("quizResult").classList.add("hidden");
+      document.getElementById("quizStart").classList.remove("hidden");
+      renderCategories();
+    });
+
+    function startQuiz() {
+      const lang = getLang();
+      let pool = selectedCategory === "all" ? QUIZ_QUESTIONS : QUIZ_QUESTIONS.filter(q => q.category === selectedCategory);
+      questions = shuffle(pool).slice(0, 10);
+      current = 0; score = 0;
+      document.getElementById("quizStart").classList.add("hidden");
+      document.getElementById("quizActive").classList.remove("hidden");
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const lang = getLang();
+      const q = questions[current];
+      document.getElementById("quizCounter").textContent = `${current + 1} / ${questions.length}`;
+      document.getElementById("quizProgressBar").style.width = ((current / questions.length) * 100) + "%";
+      document.getElementById("quizQuestion").textContent = q.q[lang];
+      document.getElementById("quizExplain").classList.add("hidden");
+      document.getElementById("nextQBtn").classList.add("hidden");
+
+      const opts = document.getElementById("quizOptions");
+      opts.innerHTML = "";
+      q.options[lang].forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.className = "quiz-opt";
+        btn.textContent = opt;
+        btn.addEventListener("click", () => answerQ(i, btn));
+        opts.appendChild(btn);
+      });
+    }
+
+    function answerQ(idx, btn) {
+      const lang = getLang();
+      const q = questions[current];
+      document.querySelectorAll(".quiz-opt").forEach(b => b.disabled = true);
+      if (idx === q.answer) {
+        btn.classList.add("correct");
+        score++;
+      } else {
+        btn.classList.add("wrong");
+        document.querySelectorAll(".quiz-opt")[q.answer].classList.add("correct");
+      }
+      const explain = document.getElementById("quizExplain");
+      explain.textContent = q.explain[lang];
+      explain.classList.remove("hidden");
+      const nextBtn = document.getElementById("nextQBtn");
+      nextBtn.classList.remove("hidden");
+      nextBtn.textContent = current < questions.length - 1
+        ? (lang === 'tr' ? 'Sonraki →' : 'Next →')
+        : (lang === 'tr' ? 'Sonucu Gör' : 'See Results');
+      nextBtn.onclick = () => {
+        current++;
+        if (current < questions.length) showQuestion();
+        else showResult();
+      };
+    }
+
+    function showResult() {
+      const lang = getLang();
+      document.getElementById("quizActive").classList.add("hidden");
+      const res = document.getElementById("quizResult");
+      res.classList.remove("hidden");
+      const pct = Math.round((score / questions.length) * 100);
+      document.getElementById("resultIcon").textContent = pct >= 80 ? "🏆" : pct >= 50 ? "👁" : "🔍";
+      document.getElementById("resultTitle").textContent = lang === 'tr' ? `${pct}% Doğru` : `${pct}% Correct`;
+      document.getElementById("resultScore").textContent = lang === 'tr'
+        ? `${questions.length} sorudan ${score} doğru`
+        : `${score} out of ${questions.length} correct`;
+      const msgs = {
+        tr: pct >= 80 ? "Mükemmel! Sherlock senden memnun olurdu." : pct >= 50 ? "İyi gidiyorsun. Pratik yapmaya devam et." : "Tekrar çalışman gerekiyor. Modüllere dön.",
+        en: pct >= 80 ? "Excellent! Sherlock would be proud." : pct >= 50 ? "Good progress. Keep practicing." : "You need more practice. Review the modules."
+      };
+      document.getElementById("resultMsg").textContent = msgs[lang];
+    }
+
+    function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+  </script>
+</body>
+</html>
